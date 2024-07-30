@@ -1,0 +1,58 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       Int      @id @default(autoincrement())
+  email    String   @unique
+  password String
+  projects Project[]
+  tokens   Token[]
+}
+
+model Project {
+  id          Int     @id @default(autoincrement())
+  builderId   Int
+  projectName String
+  description String
+  location    String
+  user        User    @relation(fields: [builderId], references: [id])
+  tokens      Token[]
+}
+
+model Token {
+  id                Int       @id @default(autoincrement())
+  builderId         Int
+  projectId         Int
+  tokenName         String
+  tokenSymbol       String
+  totalSupply       Int
+  additionalFeatures Json
+  status            String   @default("defined")
+  user              User     @relation(fields: [builderId], references: [id])
+  project           Project  @relation(fields: [projectId], references: [id])
+  transactions      TokenTransaction[]
+}
+
+model TokenTransaction {
+  id              Int      @id @default(autoincrement())
+  builderId       Int
+  tokenId         Int
+  recipientAddress String
+  amount          Int
+  senderAddress   String
+  date            DateTime @default(now())
+  status          String
+  token           Token    @relation(fields: [tokenId], references: [id])
+}
